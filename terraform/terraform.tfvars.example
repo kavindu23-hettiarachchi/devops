@@ -1,0 +1,37 @@
+# Copy this file to terraform.tfvars and update values as needed
+# cp terraform.tfvars.example terraform.tfvars
+
+project_name = "devops"
+environment  = "dev"
+
+# Docker configuration
+# For Linux/WSL: "unix:///var/run/docker.sock"
+# For Windows Docker Desktop: "npipe:////./pipe/docker_engine"
+docker_host = "unix:///var/run/docker.sock"
+
+# MongoDB
+mongodb_version   = "6.0"
+mongodb_port      = 27017
+mongodb_database  = "demo"
+
+# Backend
+backend_image_name    = "devops-backend"
+backend_port          = 5000
+backend_external_port = 4000
+backend_build_path    = "../backend"
+jwt_secret            = "change_this_to_a_secure_secret_key_in_production"
+node_env              = "development"
+
+# Frontend
+frontend_image_name    = "devops-frontend"
+frontend_port          = 80
+frontend_external_port = 3000
+frontend_build_path    = "../frontend"
+
+# Tags
+tags = {
+  Environment = "dev"
+  Project     = "devops"
+  ManagedBy   = "terraform"
+  Owner       = "your-team"
+}

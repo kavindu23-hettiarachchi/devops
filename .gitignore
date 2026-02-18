@@ -1,0 +1,21 @@
+# Node modules
+node_modules/
+*/node_modules/
+
+# AWS CLI binaries
+aws/
+awscliv2.zip
+
+# Terraform
+terraform/.terraform/
+terraform/*.tfstate
+terraform/*.tfstate.backup
+terraform/terraform.tfvars
+*.zip
+
+# WSL binary
+wsl
+
+# Misc
+.env
+*.log

@@ -1,0 +1,90 @@
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.2rem 2.5rem;
+  background: linear-gradient(135deg, #FF6B35 0%, #FF8A50 100%);
+  box-shadow: 0 8px 32px rgba(255, 107, 53, 0.15);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.navbar-brand a {
+  color: white;
+  font-size: 1.8rem;
+  font-weight: 800;
+  text-decoration: none;
+  letter-spacing: -0.5px;
+  transition: transform 0.3s ease;
+}
+
+.navbar-brand a:hover {
+  transform: scale(1.05);
+}
+
+.navbar-links {
+  display: flex;
+  align-items: center;
+  gap: 2.5rem;
+}
+
+.navbar-links a {
+  color: white;
+  text-decoration: none;
+  padding: 0.75rem 1.25rem;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+  font-weight: 500;
+  font-size: 0.95rem;
+}
+
+.navbar-links a:hover {
+  background-color: rgba(255, 255, 255, 0.2);
+  transform: translateY(-2px);
+}
+
+.welcome-message {
+  color: rgba(255, 255, 255, 0.95);
+  margin-right: 0.5rem;
+  font-weight: 500;
+  font-size: 0.95rem;
+}
+
+.logout-btn {
+  background-color: rgba(255, 255, 255, 0.25);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.logout-btn:hover {
+  background-color: rgba(255, 255, 255, 0.35);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.cart-link {
+  position: relative;
+  font-weight: 600;
+}
+
+.cart-badge {
+  position: absolute;
+  top: -8px;
+  right: -12px;
+  background: linear-gradient(135deg, #00D084 0%, #00F0B0 100%);
+  color: white;
+  border-radius: 50%;
+  padding: 0.3rem 0.7rem;
+  font-size: 0.8rem;
+  font-weight: bold;
+  min-width: 1.8rem;
+  text-align: center;
+  box-shadow: 0 4px 12px rgba(0, 208, 132, 0.3);
+}

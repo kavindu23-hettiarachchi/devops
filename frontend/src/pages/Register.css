@@ -1,0 +1,171 @@
+.register-page {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: calc(100vh - 80px);
+  background: linear-gradient(135deg, #fff0e6 0%, #ffffff 100%);
+  padding: 40px 20px;
+}
+
+.register-card {
+  background: var(--card-bg);
+  padding: 40px;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  width: 100%;
+  max-width: 500px;
+  /* Slightly wider than login */
+  animation: slideUp 0.5s ease-out;
+}
+
+.register-header {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.register-header h2 {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--secondary);
+  margin-bottom: 8px;
+}
+
+.register-header p {
+  color: var(--text-light);
+  font-size: 15px;
+}
+
+.register-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.form-row {
+  display: flex;
+  gap: 16px;
+}
+
+.form-row .form-group {
+  flex: 1;
+}
+
+/* Reusing form-group styles but ensuring they apply here */
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.form-group label {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--secondary);
+}
+
+.form-group input {
+  padding: 12px 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 15px;
+  transition: all 0.2s;
+  background-color: var(--input-bg, #fff);
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.form-group input:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(255, 107, 1, 0.1);
+}
+
+/* Custom File Input Styling */
+.file-input-wrapper {
+  position: relative;
+  overflow: hidden;
+  display: inline-block;
+  width: 100%;
+}
+
+.file-input {
+  position: absolute;
+  top: 0;
+  left: 0;
+  opacity: 0;
+  width: 100%;
+  height: 100%;
+  cursor: pointer;
+}
+
+.file-input-custom {
+  padding: 12px 16px;
+  border: 1px dashed var(--border);
+  border-radius: var(--radius-sm);
+  background-color: #f9fafb;
+  color: var(--text-light);
+  text-align: center;
+  font-size: 14px;
+  transition: all 0.2s;
+}
+
+.file-input:hover+.file-input-custom {
+  border-color: var(--primary);
+  background-color: #fff5eb;
+}
+
+.submit-btn {
+  margin-top: 10px;
+  border-radius: var(--radius-sm);
+  border: none;
+  padding: 14px;
+  font-size: 16px;
+  font-weight: 600;
+  background-color: var(--primary);
+  color: white;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.submit-btn:hover {
+  background-color: var(--primary-hover);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
+
+.submit-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.register-footer {
+  margin-top: 25px;
+  text-align: center;
+  font-size: 14px;
+  color: var(--text-light);
+}
+
+.register-footer a {
+  font-weight: 600;
+  color: var(--primary);
+  text-decoration: none;
+  margin-left: 4px;
+}
+
+.register-footer a:hover {
+  text-decoration: underline;
+}
+
+@media (max-width: 480px) {
+  .register-card {
+    padding: 30px 20px;
+    box-shadow: none;
+    background: transparent;
+  }
+
+  .form-row {
+    flex-direction: column;
+    gap: 16px;
+  }
+}

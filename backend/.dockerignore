@@ -1,0 +1,10 @@
+node_modules
+uploads/*
+!uploads/.gitkeep
+.env
+.env.local
+.git
+.gitignore
+README.md
+.vscode
+*.log
