@@ -1,173 +1,111 @@
 pipeline {
     agent any
 
-    options {
-        timestamps()
-        timeout(time: 1, unit: 'HOURS')
-        buildDiscarder(logRotator(numToKeepStr: '10'))
-    }
-
-    parameters {
-        booleanParam(name: 'PUSH_TO_DOCKER_HUB', defaultValue: true, description: 'Push images to Docker Hub after build')
-    }
-
     environment {
-        DOCKER_REGISTRY = "docker.io"
-        FRONTEND_IMAGE = "kavindu123456/frontend-app"
-        BACKEND_IMAGE = "kavindu123456/backend-app"
-        GIT_REPO = "https://github.com/kavindu23-hettiarachchi/devops.git"
-        IMAGE_TAG = "${BUILD_NUMBER}"
-        GIT_COMMIT_SHORT = sh(script: "git rev-parse --short HEAD", returnStdout: true).trim()
+        DOCKER_HUB_USER = "kavindu123456"
+        FRONTEND_IMAGE = "${DOCKER_HUB_USER}/devops-frontend"
+        BACKEND_IMAGE = "${DOCKER_HUB_USER}/devops-backend"
+        AWS_REGION = "us-east-1"
+        EC2_IP = "52.22.87.248"
+        EC2_USER = "ubuntu"
     }
 
     stages {
-        stage('Preparation') {
+        stage('Prepare') {
             steps {
-                echo "═══════════════════════════════════════════════════════"
-                echo "Building Docker Images for Docker Hub"
-                echo "═══════════════════════════════════════════════════════"
-                echo "Frontend Image: ${FRONTEND_IMAGE}:${IMAGE_TAG}"
-                echo "Backend Image: ${BACKEND_IMAGE}:${IMAGE_TAG}"
-                echo "Commit SHA: ${GIT_COMMIT_SHORT}"
-                echo "═══════════════════════════════════════════════════════"
-                cleanWs()
+                echo "🔄 Preparing workspace..."
+                deleteDir()
+                checkout scm
             }
         }
 
-        stage('Clone Repository') {
+        stage('Build Frontend') {
             steps {
-                echo "Cloning repository from ${GIT_REPO}..."
-                git branch: 'main', url: "${GIT_REPO}"
-                echo "Repository cloned successfully"
+                echo "🏗️ Building Frontend Image..."
+                sh 'docker build --network=host -t ${FRONTEND_IMAGE}:latest -f frontend/Dockerfile frontend'
             }
         }
 
-        stage('Build Docker Images') {
-            parallel {
-                stage('Build Frontend Image') {
-                    steps {
-                        script {
-                            echo "Building Frontend Docker Image..."
-                            sh '''
-                                docker build \
-                                    -t ${FRONTEND_IMAGE}:${IMAGE_TAG} \
-                                    -t ${FRONTEND_IMAGE}:latest \
-                                    -t ${FRONTEND_IMAGE}:${GIT_COMMIT_SHORT} \
-                                    -f frontend/Dockerfile \
-                                    --build-arg BUILD_DATE=$(date -u +'%Y-%m-%dT%H:%M:%SZ') \
-                                    --build-arg VCS_REF=${GIT_COMMIT_SHORT} \
-                                    frontend
-                            '''
-                            echo "Frontend image built successfully"
-                        }
-                    }
-                }
-
-                stage('Build Backend Image') {
-                    steps {
-                        script {
-                            echo "Building Backend Docker Image..."
-                            sh '''
-                                docker build \
-                                    -t ${BACKEND_IMAGE}:${IMAGE_TAG} \
-                                    -t ${BACKEND_IMAGE}:latest \
-                                    -t ${BACKEND_IMAGE}:${GIT_COMMIT_SHORT} \
-                                    -f backend/Dockerfile \
-                                    --build-arg BUILD_DATE=$(date -u +'%Y-%m-%dT%H:%M:%SZ') \
-                                    --build-arg VCS_REF=${GIT_COMMIT_SHORT} \
-                                    backend
-                            '''
-                            echo "Backend image built successfully"
-                        }
-                    }
-                }
+        stage('Build Backend') {
+            steps {
+                echo "🏗️ Building Backend Image..."
+                sh 'docker build -t ${BACKEND_IMAGE}:latest -f backend/Dockerfile backend'
             }
         }
 
-        stage('Docker Hub Login') {
-            when {
-                expression { params.PUSH_TO_DOCKER_HUB == true }
-            }
+        stage('Login to Docker Hub') {
             steps {
-                script {
-                    echo "Logging in to Docker Hub..."
-                    withCredentials([usernamePassword(credentialsId: 'dockerhub-creds', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
-                        sh '''
-                            echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin ${DOCKER_REGISTRY}
-                            echo "Docker Hub login successful"
-                        '''
-                    }
+                echo "🔐 Logging in to Docker Hub..."
+                withCredentials([usernamePassword(credentialsId: 'dockerhub-creds', usernameVariable: 'USER', passwordVariable: 'PASS')]) {
+                    sh 'echo $PASS | docker login -u $USER --password-stdin'
                 }
             }
         }
 
         stage('Push to Docker Hub') {
-            when {
-                expression { params.PUSH_TO_DOCKER_HUB == true }
+            steps {
+                echo "📤 Pushing images to Docker Hub..."
+                sh '''
+                    docker push ${FRONTEND_IMAGE}:latest
+                    docker push ${BACKEND_IMAGE}:latest
+                '''
             }
-            parallel {
-                stage('Push Frontend Image') {
-                    steps {
-                        script {
-                            echo "Pushing Frontend image to Docker Hub..."
-                            sh '''
-                                docker push ${FRONTEND_IMAGE}:${IMAGE_TAG}
-                                docker push ${FRONTEND_IMAGE}:latest
-                                docker push ${FRONTEND_IMAGE}:${GIT_COMMIT_SHORT}
-                            '''
-                            echo "Frontend image pushed successfully"
-                        }
-                    }
-                }
+        }
 
-                stage('Push Backend Image') {
-                    steps {
-                        script {
-                            echo "Pushing Backend image to Docker Hub..."
-                            sh '''
-                                docker push ${BACKEND_IMAGE}:${IMAGE_TAG}
-                                docker push ${BACKEND_IMAGE}:latest
-                                docker push ${BACKEND_IMAGE}:${GIT_COMMIT_SHORT}
-                            '''
-                            echo "Backend image pushed successfully"
-                        }
-                    }
+        stage('Deploy to AWS EC2') {
+            steps {
+                echo "🚀 Deploying to AWS EC2..."
+                sshagent(['ec2-ssh-key']) {
+                    sh '''
+                        echo "📍 Connecting to EC2: ${EC2_IP}"
+                        
+                        # SSH into EC2 and pull latest images + restart containers
+                        ssh -o StrictHostKeyChecking=no ${EC2_USER}@${EC2_IP} <<'DEPLOY'
+echo "📥 Pulling latest Docker images..."
+docker pull ${DOCKER_HUB_USER}/devops-backend:latest
+docker pull ${DOCKER_HUB_USER}/devops-frontend:latest
+
+echo "🔄 Restarting containers..."
+cd /home/ubuntu/app
+
+# Stop and remove old containers
+docker-compose down
+
+# Start new containers with latest images
+docker-compose up -d
+
+# Show status
+echo "✅ Containers restarted"
+docker-compose ps
+
+# Check logs
+echo "📋 Recent logs:"
+docker-compose logs -n 20
+DEPLOY
+                    '''
                 }
             }
         }
 
-        stage('Cleanup') {
-            when {
-                expression { params.PUSH_TO_DOCKER_HUB == true }
-            }
+        stage('Verify Deployment') {
             steps {
-                script {
-                    echo "Cleaning up Docker resources..."
-                    sh 'docker logout ${DOCKER_REGISTRY} || true'
-                    echo "Cleanup completed"
-                }
+                echo "✅ Verifying deployment..."
+                sh '''
+                    sleep 15
+                    echo "Testing application at http://${EC2_IP}"
+                    curl -f http://${EC2_IP}/ && echo "✅ Application is running!" || echo "⚠️ Application starting, please wait..."
+                '''
             }
         }
     }
 
     post {
-        always {
-            script {
-                sh 'docker logout || true'
-                // Remove dangling images to free up space
-                sh 'docker image prune -f || true'
-            }
-        }
         success {
-            echo "═══════════════════════════════════════════════════════"
-            echo "✓ Pipeline completed successfully!"
-            echo "Images pushed to Docker Hub:"
-            echo "  - ${FRONTEND_IMAGE}:${IMAGE_TAG}"
-            echo "  - ${BACKEND_IMAGE}:${IMAGE_TAG}"
-            echo "═══════════════════════════════════════════════════════"
+            echo "✅ Deployment Successful!"
+            echo "🎉 App running at: http://${EC2_IP}"
         }
         failure {
-            echo "✗ Pipeline failed. Check logs above for details."
+            echo "❌ Deployment Failed!"
         }
     }
 }
